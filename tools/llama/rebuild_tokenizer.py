@@ -1,7 +1,7 @@
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 from fish_speech.text.symbols import en_symbols, jp_symbols, zh_symbols
-from logger_settings import api_logger
+from utils.logger_settings import api_logger
 
 # reuse the tokenizer from the llama
 model_type = "meta-llama/Llama-2-7b-hf"

@@ -4,7 +4,7 @@ from multiprocessing import Pool, cpu_count
 from pathlib import Path
 
 from tqdm import tqdm
-from logger_settings import api_logger
+from utils.logger_settings import api_logger
 
 def convert_to_flac(src_file_path):
     dst_file_path = src_file_path.with_suffix(".flac")

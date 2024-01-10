@@ -2,7 +2,7 @@ import os
 import pickle
 import re
 from functools import lru_cache
-from logger_settings import api_logger
+from utils.logger_settings import api_logger
 from g2p_en import G2p
 
 current_file_path = os.path.dirname(__file__)

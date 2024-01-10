@@ -15,7 +15,7 @@ from fish_audio_preprocess.utils.separate_audio import (
     separate_audio,
 )
 from tqdm import tqdm
-from logger_settings import api_logger
+from utils.logger_settings import api_logger
 
 rank = int(os.environ.get("SLURM_PROCID", 0))
 world_size = int(os.environ.get("SLURM_NTASKS", 1))

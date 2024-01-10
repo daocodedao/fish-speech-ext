@@ -23,7 +23,7 @@ from fish_speech.text.symbols import pad as pad_symbol
 from fish_speech.text.symbols import pu_symbols
 from fish_speech.utils import RankedLogger
 from fish_speech.utils.braceexpand import braceexpand
-from logger_settings import api_logger
+from utils.logger_settings import api_logger
 
 log = RankedLogger(__name__, rank_zero_only=True)
 

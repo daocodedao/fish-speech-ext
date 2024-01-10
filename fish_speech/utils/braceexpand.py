@@ -8,7 +8,7 @@ import re
 import string
 from itertools import chain, product
 from typing import Iterable, Iterator, Optional
-from logger_settings import api_logger
+from utils.logger_settings import api_logger
 
 __all__ = ["braceexpand", "alphabet", "UnbalancedBracesError"]
 

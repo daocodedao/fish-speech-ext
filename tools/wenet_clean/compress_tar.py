@@ -5,7 +5,7 @@ from multiprocessing import Process
 from pathlib import Path
 
 from tqdm import tqdm
-from logger_settings import api_logger
+from utils.logger_settings import api_logger
 
 def chunked_tarring(rank, file_list, base_folder, output_folder, chunk_size=1024**3):
     chunk_count = 1

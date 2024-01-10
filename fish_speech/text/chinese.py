@@ -7,7 +7,7 @@ from pypinyin import Style, lazy_pinyin
 
 from fish_speech.text.symbols import punctuation
 from fish_speech.text.tone_sandhi import ToneSandhi
-from logger_settings import api_logger
+from utils.logger_settings import api_logger
 
 try:
     from tn.chinese.normalizer import Normalizer
