@@ -5,7 +5,7 @@ from multiprocessing import Process
 from pathlib import Path
 
 from tqdm import tqdm
-
+from logger_settings import api_logger
 
 def chunked_tarring(rank, file_list, base_folder, output_folder, chunk_size=1024**3):
     chunk_count = 1
@@ -44,7 +44,7 @@ def chunked_tarring(rank, file_list, base_folder, output_folder, chunk_size=1024
         total_size += file_size
 
         if saved_count % 1000 == 0:
-            print(f"Rank {rank}: {saved_count}/{len(file_list)}")
+            api_logger.info(f"Rank {rank}: {saved_count}/{len(file_list)}")
 
         saved_count += 1
 
@@ -53,7 +53,7 @@ def chunked_tarring(rank, file_list, base_folder, output_folder, chunk_size=1024
     with open(output_folder / f"chunk-{rank:03d}-{chunk_count:04d}.tar", "wb") as f:
         f.write(buffer.read())
 
-    print(f"Rank {rank}: {saved_count}/{len(file_list)}")
+    api_logger.info(f"Rank {rank}: {saved_count}/{len(file_list)}")
 
 
 if __name__ == "__main__":
@@ -64,7 +64,7 @@ if __name__ == "__main__":
 
     file_list = list(tqdm(base_folder.rglob("*.flac")))
     random.shuffle(file_list)
-    print(f"Total files: {len(file_list)}")
+    api_logger.info(f"Total files: {len(file_list)}")
 
     chunk_size = len(file_list) // num_workers
     processes = []
@@ -85,4 +85,4 @@ if __name__ == "__main__":
     for p in processes:
         p.join()
 
-    print("Done")
+    api_logger.info("Done")

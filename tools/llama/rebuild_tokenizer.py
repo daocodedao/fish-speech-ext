@@ -1,6 +1,7 @@
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 from fish_speech.text.symbols import en_symbols, jp_symbols, zh_symbols
+from logger_settings import api_logger
 
 # reuse the tokenizer from the llama
 model_type = "meta-llama/Llama-2-7b-hf"
@@ -22,7 +23,7 @@ length = len(tokenizer)
 if length % 8 != 0:
     length += 8 - (length % 8)
 
-print(f"Vocab size: {len(tokenizer)}, padded to {length}")
+api_logger.info(f"Vocab size: {len(tokenizer)}, padded to {length}")
 
 # model = AutoModelForCausalLM.from_pretrained(
 #     "fishaudio/speech-lm-300m", revision="mqtts-proto"
@@ -33,15 +34,15 @@ print(f"Vocab size: {len(tokenizer)}, padded to {length}")
 # model.resize_token_embeddings(len(tokenizer), pad_to_multiple_of=8)
 
 # total_params = sum(p.numel() for p in model.parameters())
-# print(f"Total parameters: {total_params / 1e6:.2f}M")
+# api_logger.info(f"Total parameters: {total_params / 1e6:.2f}M")
 
 # Try tokenizing a new sequence
 sequence = "All around, too, lay vast quantities of the costliest merchandise, and treasures were heaped in every cranny of the rocks, but all these things only added to the desolation of the scene."
 encoded = tokenizer.encode(sequence)
-print("Test encoding....")
-print(f"\tSentence: {sequence}")
-print(f"\tEncoded: {encoded}")
-print(f"\tDecoded: {tokenizer.batch_decode(encoded)}")
+api_logger.info("Test encoding....")
+api_logger.info(f"\tSentence: {sequence}")
+api_logger.info(f"\tEncoded: {encoded}")
+api_logger.info(f"\tDecoded: {tokenizer.batch_decode(encoded)}")
 
 # model.push_to_hub(
 #     "fishaudio/speech-lm-300m", private=True, revision="text-pretrain-10k-phones"

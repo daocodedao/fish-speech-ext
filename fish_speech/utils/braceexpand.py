@@ -8,6 +8,7 @@ import re
 import string
 from itertools import chain, product
 from typing import Iterable, Iterator, Optional
+from logger_settings import api_logger
 
 __all__ = ["braceexpand", "alphabet", "UnbalancedBracesError"]
 
@@ -108,21 +109,21 @@ def parse_pattern(pattern: str, escape: bool) -> Iterator[str]:
     bracketdepth = 0
     items: list[Iterable[str]] = []
 
-    # print 'pattern:', pattern
+    # api_logger.info 'pattern:', pattern
     while pos < len(pattern):
         if escape and pattern[pos] == "\\":
             pos += 2
             continue
         elif pattern[pos] == "{":
             if bracketdepth == 0 and pos > start:
-                # print 'literal:', pattern[start:pos]
+                # api_logger.info 'literal:', pattern[start:pos]
                 items.append([pattern[start:pos]])
                 start = pos
             bracketdepth += 1
         elif pattern[pos] == "}":
             bracketdepth -= 1
             if bracketdepth == 0:
-                # print 'expression:', pattern[start+1:pos]
+                # api_logger.info 'expression:', pattern[start+1:pos]
                 expr = pattern[start + 1 : pos]
                 item = parse_expression(expr, escape)
                 if item is None:  # not a range or sequence
@@ -160,7 +161,7 @@ def parse_sequence(seq: str, escape: bool) -> Optional[Iterator[str]]:
     bracketdepth = 0
     items: list[Iterable[str]] = []
 
-    # print 'sequence:', seq
+    # api_logger.info 'sequence:', seq
     while pos < len(seq):
         if escape and seq[pos] == "\\":
             pos += 2

@@ -4,7 +4,7 @@ from multiprocessing import Pool, cpu_count
 from pathlib import Path
 
 from tqdm import tqdm
-
+from logger_settings import api_logger
 
 def convert_to_flac(src_file_path):
     dst_file_path = src_file_path.with_suffix(".flac")
@@ -39,7 +39,7 @@ if __name__ == "__main__":
 
     wav_files = list(src_dir.rglob("*.wav"))
     random.shuffle(wav_files)
-    print(f"Found {len(wav_files)} wav files")
+    api_logger.info(f"Found {len(wav_files)} wav files")
 
     success_counter = 0
     fail_counter = 0
@@ -56,5 +56,5 @@ if __name__ == "__main__":
 
             pbar.set_description(f"Success: {success_counter}, Fail: {fail_counter}")
 
-    print(f"Successfully converted: {success_counter}")
-    print(f"Failed conversions: {fail_counter}")
+    api_logger.info(f"Successfully converted: {success_counter}")
+    api_logger.info(f"Failed conversions: {fail_counter}")

@@ -7,6 +7,7 @@ from einops import rearrange
 from torch import Tensor
 from torch.nn import functional as F
 from transformers.utils import is_flash_attn_2_available
+from logger_settings import api_logger
 
 if is_flash_attn_2_available():
     from flash_attn import flash_attn_func, flash_attn_varlen_func
@@ -528,11 +529,11 @@ if __name__ == "__main__":
 
     model = Transformer(args)
     model = model.cuda().bfloat16()
-    print("Total params:", sum(i.numel() for i in model.parameters()) / 1024 / 1024)
+    api("Total params:", sum(i.numel() for i in model.parameters()) / 1024 / 1024)
 
     inputs = torch.randint(0, 100, (2, 5, 128)).cuda()
     key_padding_mask = torch.zeros(2, 128).bool().cuda()
     key_padding_mask[0, 2:] = True
     x1 = model(inputs, key_padding_mask=key_padding_mask)
-    print(x1.token_logits.shape)
-    # print(x1.codebook_logits.shape)
+    api_logger.info(x1.token_logits.shape)
+    # api_logger.info(x1.codebook_logits.shape)

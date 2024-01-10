@@ -17,6 +17,7 @@ from typing import List, Tuple
 import jieba
 from pypinyin import Style, lazy_pinyin
 
+from logger_settings import api_logger
 
 class ToneSandhi:
     def __init__(self):
@@ -364,16 +365,16 @@ class ToneSandhi:
         try:
             seg = self._merge_yi(seg)
         except:
-            print("_merge_yi failed")
+            api_logger.info("_merge_yi failed")
         seg = self._merge_reduplication(seg)
         try:
             seg = self._merge_continuous_three_tones(seg)
         except:
-            print("_merge_continuous_three_tones failed")
+            api_logger.info("_merge_continuous_three_tones failed")
         try:
             seg = self._merge_continuous_three_tones_2(seg)
         except:
-            print("_merge_continuous_three_tones_2 failed")
+            api_logger.info("_merge_continuous_three_tones_2 failed")
 
         seg = self._merge_er(seg)
         return seg

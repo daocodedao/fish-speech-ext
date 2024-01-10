@@ -15,11 +15,12 @@ from fish_audio_preprocess.utils.separate_audio import (
     separate_audio,
 )
 from tqdm import tqdm
+from logger_settings import api_logger
 
 rank = int(os.environ.get("SLURM_PROCID", 0))
 world_size = int(os.environ.get("SLURM_NTASKS", 1))
 device = torch.device("cuda:0")
-print(f"Rank {rank}/{world_size} on {device}")
+api_logger.info(f"Rank {rank}/{world_size} on {device}")
 
 
 def main():
@@ -30,14 +31,14 @@ def main():
         cleaned_path.mkdir(parents=True)
 
     demucs = init_model("htdemucs", device)
-    print("Model loaded")
+    api_logger.info("Model loaded")
 
     with open(meta_path) as f:
         dataset = json.load(f)["audios"]
 
-    print(f"Dataset loaded, {len(dataset)} samples")
+    api_logger.info(f"Dataset loaded, {len(dataset)} samples")
     dataset = dataset[rank::world_size]
-    print(f"Dataset split, {len(dataset)} samples")
+    api_logger.info(f"Dataset split, {len(dataset)} samples")
 
     for data_idx, data in enumerate(dataset):
         done_path = cleaned_path / data["aid"] / "done"
@@ -46,7 +47,7 @@ def main():
         if done_path.exists():
             continue
 
-        print(f"Processing {data_idx}/{len(dataset)} at rank {rank}")
+        api_logger.info(f"Processing {data_idx}/{len(dataset)} at rank {rank}")
 
         try:
             with tempfile.NamedTemporaryFile(suffix=".wav") as f:
@@ -108,11 +109,11 @@ def main():
             # Write done file
             done_path.write_text("")
         except Exception as e:
-            print(f"Error {e} on {data_idx}/{len(dataset)} at rank {rank}")
+            api_logger.info(f"Error {e} on {data_idx}/{len(dataset)} at rank {rank}")
             time.sleep(10)
             continue
 
-    print("Done")
+    api_logger.info("Done")
 
 
 if __name__ == "__main__":

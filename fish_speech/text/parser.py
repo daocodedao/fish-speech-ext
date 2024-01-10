@@ -12,6 +12,7 @@ from fish_speech.text.symbols import (
     punctuation,
     symbols_to_id,
 )
+from logger_settings import api_logger
 
 LANGUAGE_TO_MODULE_MAP = {
     "ZH": g2p_chinese,
@@ -229,11 +230,11 @@ if __name__ == "__main__":
     segments = parse_text_to_segments(
         "测试一下 Hugging face, BGM声音很大吗？那我改一下. <jp>世界、こんにちは。</jp>"  # noqa: E501
     )
-    print(segments)
+    api_logger.info(segments)
 
     segments = parse_text_to_segments(
         "测试一下 Hugging face, BGM声音很大吗？那我改一下. 世界、こんにちは。"  # noqa: E501
     )
-    print(segments)
+    api_logger.info(segments)
 
-    print(clean_text("测试一下 Hugging face, BGM声音很大吗？那我改一下. 世界、こんにちは。<p:123> <p:aH>"))
+    api_logger.info(clean_text("测试一下 Hugging face, BGM声音很大吗？那我改一下. 世界、こんにちは。<p:123> <p:aH>"))

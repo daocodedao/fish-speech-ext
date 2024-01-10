@@ -2,7 +2,7 @@ import os
 import pickle
 import re
 from functools import lru_cache
-
+from logger_settings import api_logger
 from g2p_en import G2p
 
 current_file_path = os.path.dirname(__file__)
@@ -72,4 +72,4 @@ def g2p(text):
 
 
 if __name__ == "__main__":
-    print(g2p("Hugging face, BGM"))
+    api_logger.info(g2p("Hugging face, BGM"))
