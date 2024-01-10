@@ -16,7 +16,7 @@ try:
 except ImportError:
     import cn2an
 
-    logger.warning("tn.chinese.normalizer not found, use cn2an normalizer")
+    api_logger.warning("tn.chinese.normalizer not found, use cn2an normalizer")
     normalizer = lambda x: cn2an.transform(x, "an2cn")
 
 current_file_path = os.path.dirname(__file__)
@@ -141,4 +141,4 @@ if __name__ == "__main__":
     text = "呣呣呣～就是…大人的鼹鼠党吧？"
     # text = "你好"
     text = text_normalize(text)
-    api_logger.info(g2p(text))
+    api_api_logger.info(g2p(text))

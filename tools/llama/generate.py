@@ -15,7 +15,7 @@ from tqdm import tqdm
 from transformers import AutoTokenizer
 
 from fish_speech.text.parser import clean_text
-
+from fish_speech.utils.logger_settings import api_logger
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 torch._inductor.config.coordinate_descent_tuning = True
 torch._inductor.config.triton.unique_kernel_names = True
@@ -220,7 +220,7 @@ def generate(
     if max_new_tokens:
         if T + max_new_tokens > model.config.max_seq_len:
             max_new_tokens = model.config.max_seq_len - T
-            logger.info(f"Truncating max_new_tokens to {max_new_tokens}")
+            api_logger.info(f"Truncating max_new_tokens to {max_new_tokens}")
 
         T_new = T + max_new_tokens
     else:
@@ -326,14 +326,14 @@ def load_model(config_name, checkpoint_path, device, precision):
         model: Transformer = instantiate(cfg.model).model
 
     if "int8" in str(checkpoint_path):
-        logger.info("Using int8 weight-only quantization!")
+        api_logger.info("Using int8 weight-only quantization!")
         from quantize import WeightOnlyInt8QuantHandler
 
         simple_quantizer = WeightOnlyInt8QuantHandler(model)
         model = simple_quantizer.convert_for_runtime()
 
     if "int4" in str(checkpoint_path):
-        logger.info("Using int4 quantization!")
+        api_logger.info("Using int4 quantization!")
         path_comps = checkpoint_path.name.split(".")
         assert path_comps[-2].startswith("g")
         groupsize = int(path_comps[-2][1:])
@@ -356,7 +356,7 @@ def load_model(config_name, checkpoint_path, device, precision):
     model.load_state_dict(checkpoint, assign=True)
 
     model = model.to(device=device, dtype=precision)
-    logger.info("Restored model from checkpoint")
+    api_logger.info("Restored model from checkpoint")
 
     return model.eval()
 
@@ -410,13 +410,13 @@ def main(
 
     precision = torch.half if half else torch.bfloat16
 
-    logger.info("Loading model ...")
+    api_logger.info("Loading model ...")
     t0 = time.time()
     model = load_model(config_name, checkpoint_path, device, precision)
     model_size = sum(p.numel() for p in model.parameters() if p.requires_grad)
 
     torch.cuda.synchronize()
-    logger.info(f"Time to load model: {time.time() - t0:.02f} seconds")
+    api_logger.info(f"Time to load model: {time.time() - t0:.02f} seconds")
 
     tokenizer = AutoTokenizer.from_pretrained(tokenizer)
     prompt_tokens = (
@@ -436,7 +436,7 @@ def main(
         order=order,
     )
     prompt_length = encoded.size(1)
-    logger.info(f"Encoded prompt shape: {encoded.shape}")
+    api_logger.info(f"Encoded prompt shape: {encoded.shape}")
 
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
@@ -464,18 +464,18 @@ def main(
         )
 
         if i == 0 and compile:
-            logger.info(f"Compilation time: {time.perf_counter() - t0:.2f} seconds")
+            api_logger.info(f"Compilation time: {time.perf_counter() - t0:.2f} seconds")
 
         torch.cuda.synchronize()
         t = time.perf_counter() - t0
 
         tokens_generated = y.size(1) - prompt_length
         tokens_sec = tokens_generated / t
-        logger.info(
+        api_logger.info(
             f"Generated {tokens_generated} tokens in {t:.02f} seconds, {tokens_sec:.02f} tokens/sec"
         )
-        logger.info(f"Bandwidth achieved: {model_size * tokens_sec / 1e9:.02f} GB/s")
-        logger.info(
+        api_logger.info(f"Bandwidth achieved: {model_size * tokens_sec / 1e9:.02f} GB/s")
+        api_logger.info(
             f"GPU Memory used: {torch.cuda.max_memory_reserved() / 1e9:.02f} GB"
         )
 
@@ -484,7 +484,7 @@ def main(
         assert (codes >= 0).all(), "Codes should be >= 0"
 
         np.save(f"codes_{i}.npy", codes.cpu().numpy())
-        logger.info(f"Saved codes to codes_{i}.npy")
+        api_logger.info(f"Saved codes to codes_{i}.npy")
 
 
 if __name__ == "__main__":

@@ -13,7 +13,7 @@ from fish_speech.datasets.protos.text_data_pb2 import Semantics, Sentence, TextD
 from fish_speech.datasets.protos.text_data_stream import pack_pb_stream
 from fish_speech.text import g2p
 from fish_speech.utils.file import AUDIO_EXTENSIONS, list_files, load_filelist
-
+from fish_speech.utils.logger_settings import api_logger
 
 def task_generator_yaml(config):
     with open(config, "r") as f:
@@ -41,7 +41,7 @@ def task_generator_yaml(config):
                 raise ValueError(f"Invalid parent level {parent_level}")
             grouped_files[p].append(file)
 
-        logger.info(f"Found {len(grouped_files)} groups in {root}")
+        api_logger.info(f"Found {len(grouped_files)} groups in {root}")
         for name, subset in grouped_files.items():
             yield name, subset, source, languages, extension
 
@@ -51,7 +51,7 @@ def task_generator_filelist(filelist):
     for filename, speaker, languages, text in load_filelist(filelist):
         grouped_files[speaker].append((Path(filename), text, languages))
 
-    logger.info(f"Found {len(grouped_files)} groups in {filelist}")
+    api_logger.info(f"Found {len(grouped_files)} groups in {filelist}")
     for speaker, values in grouped_files.items():
         yield speaker, values, "filelist", languages, None
 
@@ -69,14 +69,14 @@ def run_task(task):
 
         np_file = file.with_suffix(".npy")
         if np_file.exists() is False:
-            logger.warning(f"Can't find {np_file}")
+            api_logger.warning(f"Can't find {np_file}")
             continue
 
         if text is None:
             txt_file = file.with_suffix(extension)
 
             if txt_file.exists() is False:
-                logger.warning(f"Can't find {txt_file}")
+                api_logger.warning(f"Can't find {txt_file}")
                 continue
 
             with open(txt_file, "r") as f:
@@ -91,7 +91,7 @@ def run_task(task):
             phones = [v for _, v in g2p(text, order=languages)]
             semantics = np.load(np_file)
         except Exception as e:
-            logger.error(f"Failed to parse {file}: {e}")
+            api_logger.error(f"Failed to parse {file}: {e}")
             continue
 
         if isinstance(semantics, np.ndarray):

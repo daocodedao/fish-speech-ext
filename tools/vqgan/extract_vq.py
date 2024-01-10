@@ -17,7 +17,7 @@ from hydra.utils import instantiate
 from lightning import LightningModule
 from loguru import logger
 from omegaconf import OmegaConf
-
+from fish_speech.utils.logger_settings import api_logger
 from fish_speech.models.vqgan.utils import sequence_mask
 from fish_speech.utils.file import AUDIO_EXTENSIONS, list_files, load_filelist
 
@@ -36,9 +36,9 @@ logger_format = (
     "<cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> | "
     "{extra[rank]} - <level>{message}</level>"
 )
-logger.configure(extra={"rank": f"RANK: {RANK} / {WORLD_SIZE}"})
-logger.remove()
-logger.add(sys.stderr, format=logger_format)
+api_logger.configure(extra={"rank": f"RANK: {RANK} / {WORLD_SIZE}"})
+api_logger.remove()
+api_logger.add(sys.stderr, format=logger_format)
 
 
 @lru_cache(maxsize=1)
@@ -61,7 +61,7 @@ def get_model(
     model.eval()
     model.cuda()
 
-    logger.info(f"Loaded model")
+    api_logger.info(f"Loaded model")
     return model
 
 
@@ -157,7 +157,7 @@ def main(
     if num_workers > 1 and WORLD_SIZE != num_workers:
         assert WORLD_SIZE == 1, "You should either use SLURM or this launcher, not both"
 
-        logger.info(f"Spawning {num_workers} workers")
+        api_logger.info(f"Spawning {num_workers} workers")
 
         visible_devices = os.environ.get("CUDA_VISIBLE_DEVICES", None)
         if visible_devices is None:
@@ -182,11 +182,11 @@ def main(
         for p in processes:
             p.wait()
 
-        logger.info(f"All workers finished")
+        api_logger.info(f"All workers finished")
         return
 
     # This is a worker
-    logger.info(f"Starting worker")
+    api_logger.info(f"Starting worker")
     if filelist:
         files = [i[0] for i in load_filelist(filelist)]
     else:
@@ -196,7 +196,7 @@ def main(
 
     total_files = len(files)
     files = files[RANK::WORLD_SIZE]
-    logger.info(f"Processing {len(files)}/{total_files} files")
+    api_logger.info(f"Processing {len(files)}/{total_files} files")
 
     # Batch processing
     total_time = 0
@@ -217,12 +217,12 @@ def main(
                 / processed_files
                 * (len(files) - processed_files)
             )
-            logger.info(
+            api_logger.info(
                 f"Processed {processed_files} files, {total_time / 3600:.2f} hours of audio, "
                 + f"ETA: {timedelta(seconds=round(eta))}s"
             )
 
-    logger.info(
+    api_logger.info(
         f"Finished processing {len(files)} files, {total_time / 3600:.2f} hours of audio"
     )
 

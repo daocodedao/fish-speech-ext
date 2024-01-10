@@ -12,7 +12,7 @@ from hydra.utils import instantiate
 from lightning import LightningModule
 from loguru import logger
 from omegaconf import OmegaConf
-
+from fish_speech.utils.logger_settings import api_logger
 from fish_speech.models.vqgan.utils import sequence_mask
 from fish_speech.utils.file import AUDIO_EXTENSIONS
 
@@ -48,10 +48,10 @@ def main(input_path, output_path, config_name, checkpoint_path):
     model.load_state_dict(state_dict, strict=True)
     model.eval()
     model.cuda()
-    logger.info("Restored model from checkpoint")
+    api_logger.info("Restored model from checkpoint")
 
     if input_path.suffix in AUDIO_EXTENSIONS:
-        logger.info(f"Processing in-place reconstruction of {input_path}")
+        api_logger.info(f"Processing in-place reconstruction of {input_path}")
         # Load audio
         audio, _ = librosa.load(
             input_path,
@@ -59,7 +59,7 @@ def main(input_path, output_path, config_name, checkpoint_path):
             mono=True,
         )
         audios = torch.from_numpy(audio).to(model.device)[None, None, :]
-        logger.info(
+        api_logger.info(
             f"Loaded audio with {audios.shape[2] / model.sampling_rate:.2f} seconds"
         )
 
@@ -96,15 +96,15 @@ def main(input_path, output_path, config_name, checkpoint_path):
         if indices.ndim == 4 and indices.shape[1] == 1 and indices.shape[3] == 1:
             indices = indices[:, 0, :, 0]
         else:
-            logger.error(f"Unknown indices shape: {indices.shape}")
+            api_logger.error(f"Unknown indices shape: {indices.shape}")
             return
 
-        logger.info(f"Generated indices of shape {indices.shape}")
+        api_logger.info(f"Generated indices of shape {indices.shape}")
 
         # Save indices
         np.save(output_path.with_suffix(".npy"), indices.cpu().numpy())
     elif input_path.suffix == ".npy":
-        logger.info(f"Processing precomputed indices from {input_path}")
+        api_logger.info(f"Processing precomputed indices from {input_path}")
         indices = np.load(input_path)
         indices = torch.from_numpy(indices).to(model.device).long()
         assert indices.ndim == 2, f"Expected 2D indices, got {indices.ndim}"
@@ -123,7 +123,7 @@ def main(input_path, output_path, config_name, checkpoint_path):
 
     text_features = model.vq_encoder.decode(indices)
 
-    logger.info(
+    api_logger.info(
         f"VQ Encoded, indices: {indices.shape} equivalent to "
         + f"{1/(mel_lengths[0] * model.hop_length / model.sampling_rate / indices.shape[2]):.2f} Hz"
     )
@@ -133,14 +133,14 @@ def main(input_path, output_path, config_name, checkpoint_path):
     # Sample mels
     decoded_mels = model.decoder(text_features, mel_masks)
     fake_audios = model.generator(decoded_mels)
-    logger.info(
+    api_logger.info(
         f"Generated audio of shape {fake_audios.shape}, equivalent to {fake_audios.shape[-1] / model.sampling_rate:.2f} seconds"
     )
 
     # Save audio
     fake_audio = fake_audios[0, 0].cpu().numpy().astype(np.float32)
     sf.write("fake.wav", fake_audio, model.sampling_rate)
-    logger.info(f"Saved audio to {output_path}")
+    api_logger.info(f"Saved audio to {output_path}")
 
 
 if __name__ == "__main__":

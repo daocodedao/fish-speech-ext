@@ -69,7 +69,7 @@ class VQGANDataset(Dataset):
         try:
             return self.get_item(idx)
         except Exception as e:
-            logger.error(f"Error loading {self.files[idx]}: {e}")
+            api_logger.error(f"Error loading {self.files[idx]}: {e}")
             return None
 
 

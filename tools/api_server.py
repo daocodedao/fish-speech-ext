@@ -11,6 +11,8 @@ import numpy as np
 import soundfile as sf
 import torch
 import torch.nn.functional as F
+
+
 from hydra import compose, initialize
 from hydra.utils import instantiate
 from kui.wsgi import (
@@ -32,7 +34,7 @@ from transformers import AutoTokenizer
 import tools.llama.generate
 from fish_speech.models.vqgan.utils import sequence_mask
 from tools.llama.generate import encode_tokens, generate, load_model
-
+from fish_speech.utils.logger_settings import api_logger
 
 # Define utils for web server
 def http_execption_handler(exc: HTTPException):
@@ -84,11 +86,11 @@ class LlamaModel:
         )
 
         torch.cuda.synchronize()
-        logger.info(f"Time to load model: {time.time() - self.t0:.02f} seconds")
+        api_logger.info(f"Time to load model: {time.time() - self.t0:.02f} seconds")
         self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
 
         if self.compile:
-            logger.info("Compiling model ...")
+            api_logger.info("Compiling model ...")
             tools.llama.generate.decode_one_token = torch.compile(
                 tools.llama.generate.decode_one_token,
                 mode="reduce-overhead",
@@ -103,7 +105,7 @@ class LlamaModel:
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
 
-        logger.info("The llama is removed from memory.")
+        api_logger.info("The llama is removed from memory.")
 
 
 class VQGANModel:
@@ -122,7 +124,7 @@ class VQGANModel:
         self.model.eval()
         self.model.to(device)
 
-        logger.info("Restored VQGAN model from checkpoint")
+        api_logger.info("Restored VQGAN model from checkpoint")
 
     def __del__(self):
         self.cfg = None
@@ -132,7 +134,7 @@ class VQGANModel:
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
 
-        logger.info("The vqgan model is removed from memory.")
+        api_logger.info("The vqgan model is removed from memory.")
 
     @torch.no_grad()
     def sematic_to_wav(self, indices):
@@ -150,7 +152,7 @@ class VQGANModel:
 
         text_features = model.vq_encoder.decode(indices)
 
-        logger.info(
+        api_logger.info(
             f"VQ Encoded, indices: {indices.shape} equivalent to "
             + f"{1 / (mel_lengths[0] * model.hop_length / model.sampling_rate / indices.shape[2]):.2f} Hz"
         )
@@ -162,7 +164,7 @@ class VQGANModel:
         # Sample mels
         decoded_mels = model.decoder(text_features, mel_masks)
         fake_audios = model.generator(decoded_mels)
-        logger.info(
+        api_logger.info(
             f"Generated audio of shape {fake_audios.shape}, equivalent to {fake_audios.shape[-1] / model.sampling_rate:.2f} seconds"
         )
 
@@ -181,7 +183,7 @@ class VQGANModel:
             mono=True,
         )
         audios = torch.from_numpy(audio).to(model.device)[None, None, :]
-        logger.info(
+        api_logger.info(
             f"Loaded audio with {audios.shape[2] / model.sampling_rate:.2f} seconds"
         )
 
@@ -215,10 +217,10 @@ class VQGANModel:
         if indices.ndim == 4 and indices.shape[1] == 1 and indices.shape[3] == 1:
             indices = indices[:, 0, :, 0]
         else:
-            logger.error(f"Unknown indices shape: {indices.shape}")
+            api_logger.error(f"Unknown indices shape: {indices.shape}")
             return
 
-        logger.info(f"Generated indices of shape {indices.shape}")
+        api_logger.info(f"Generated indices of shape {indices.shape}")
 
         return indices
 
@@ -261,7 +263,7 @@ def api_load_model(
     llama = req.llama
     vqgan = req.vqgan
 
-    logger.info("Loading model ...")
+    api_logger.info("Loading model ...")
     new_model = {
         "llama": LlamaModel(
             config_name=llama.config_name,
@@ -355,14 +357,14 @@ def api_invoke_model(
     device = llama_model_manager.device
     seed = req.seed
     prompt_tokens = req.prompt_tokens
-    logger.info(f"Device: {device}")
+    api_logger.info(f"Device: {device}")
 
     if prompt_tokens is not None and prompt_tokens.endswith(".npy"):
         prompt_tokens = torch.from_numpy(np.load(prompt_tokens)).to(device)
     elif prompt_tokens is not None and prompt_tokens.endswith(".wav"):
         prompt_tokens = vqgan_model_manager.wav_to_semantic(prompt_tokens)
     elif prompt_tokens is not None:
-        logger.error(f"Unknown prompt tokens: {prompt_tokens}")
+        api_logger.error(f"Unknown prompt tokens: {prompt_tokens}")
         raise HTTPException(
             status_code=HTTPStatus.BAD_REQUEST,
             content="Unknown prompt tokens, it should be either .npy or .wav file.",
@@ -385,7 +387,7 @@ def api_invoke_model(
         order=req.order,
     )
     prompt_length = encoded.size(1)
-    logger.info(f"Encoded prompt shape: {encoded.shape}")
+    api_logger.info(f"Encoded prompt shape: {encoded.shape}")
 
     if seed is not None:
         torch.manual_seed(seed)
@@ -411,13 +413,13 @@ def api_invoke_model(
 
     tokens_generated = y.size(1) - prompt_length
     tokens_sec = tokens_generated / t
-    logger.info(
+    api_logger.info(
         f"Generated {tokens_generated} tokens in {t:.02f} seconds, {tokens_sec:.02f} tokens/sec"
     )
-    logger.info(
+    api_logger.info(
         f"Bandwidth achieved: {llama_model_manager.model_size * tokens_sec / 1e9:.02f} GB/s"
     )
-    logger.info(f"GPU Memory used: {torch.cuda.max_memory_reserved() / 1e9:.02f} GB")
+    api_logger.info(f"GPU Memory used: {torch.cuda.max_memory_reserved() / 1e9:.02f} GB")
 
     codes = y[1:, prompt_length:-1]
     codes = codes - 2

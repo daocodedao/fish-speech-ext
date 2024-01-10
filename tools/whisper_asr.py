@@ -31,7 +31,7 @@ from loguru import logger
 from tqdm import tqdm
 
 from fish_speech.utils.file import AUDIO_EXTENSIONS, list_files
-
+from fish_speech.utils.logger_settings import api_logger
 
 @click.command()
 @click.option("--model-size", default="large", help="Size of the Whisper model")
@@ -47,9 +47,9 @@ from fish_speech.utils.file import AUDIO_EXTENSIONS, list_files
 )
 @click.option("--language", default="ZH", help="Language of the transcription")
 def main(model_size, audio_dir, save_dir, sample_rate, language):
-    logger.info("Loading / Downloading OpenAI Whisper model...")
+    api_logger.info("Loading / Downloading OpenAI Whisper model...")
     model = whisper.load_model(model_size)
-    logger.info("Model loaded.")
+    api_logger.info("Model loaded.")
 
     save_path = Path(save_dir)
     save_path.mkdir(parents=True, exist_ok=True)
