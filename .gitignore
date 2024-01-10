@@ -15,3 +15,5 @@ filelists
 /*.wav
 /results
 /data
+/fishaudio/
+/venv_fish/
