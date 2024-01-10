@@ -17,7 +17,7 @@ from typing import List, Tuple
 import jieba
 from pypinyin import Style, lazy_pinyin
 
-from utils.logger_settings import api_logger
+from fish_speech.utils.logger_settings import api_logger
 
 class ToneSandhi:
     def __init__(self):

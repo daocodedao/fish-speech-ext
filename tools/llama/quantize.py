@@ -9,7 +9,7 @@ from pathlib import Path
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from utils.logger_settings import api_logger
+from fish_speech.utils.logger_settings import api_logger
 from fish_speech.models.text2semantic.llama import ModelArgs, Transformer, find_multiple
 
 ##### Quantization Primitives ######

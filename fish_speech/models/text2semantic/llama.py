@@ -7,7 +7,7 @@ from einops import rearrange
 from torch import Tensor
 from torch.nn import functional as F
 from transformers.utils import is_flash_attn_2_available
-from utils.logger_settings import api_logger
+from fish_speech.utils.logger_settings import api_logger
 
 if is_flash_attn_2_available():
     from flash_attn import flash_attn_func, flash_attn_varlen_func

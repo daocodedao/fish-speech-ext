@@ -1,7 +1,7 @@
 import os
 import subprocess as sp
 import sys
-from utils.logger_settings import api_logger
+from fish_speech.utils.logger_settings import api_logger
 
 SLURM_NTASKS = 6
 

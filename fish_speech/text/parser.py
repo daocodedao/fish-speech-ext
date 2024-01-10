@@ -12,7 +12,7 @@ from fish_speech.text.symbols import (
     punctuation,
     symbols_to_id,
 )
-from utils.logger_settings import api_logger
+from fish_speech.utils.logger_settings import api_logger
 
 LANGUAGE_TO_MODULE_MAP = {
     "ZH": g2p_chinese,

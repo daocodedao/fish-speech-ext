@@ -6,7 +6,7 @@ from torch.nn.utils.parametrize import remove_parametrizations as remove_weight_
 
 from fish_speech.models.vqgan.modules.modules import LRELU_SLOPE
 from fish_speech.models.vqgan.utils import get_padding, init_weights
-from utils.logger_settings import api_logger
+from fish_speech.utils.logger_settings import api_logger
 
 class Generator(nn.Module):
     def __init__(
