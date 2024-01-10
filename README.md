@@ -100,19 +100,5 @@ supervisorctl reload
 start.sh
 ```
 
-
-
-```
-
-http://39.105.194.16:5001/
-http://39.105.194.16:5002/docs/#
-```
-
-
-
-cd /data/work/fish-speech && python -m zibai tools.api_server:app --listen 127.0.0.1:8000
-
-cd /data/work/fish-speech && python fish_speech/webui/app.py
-
 # 查看GPU
 nvidia-smi dmon
