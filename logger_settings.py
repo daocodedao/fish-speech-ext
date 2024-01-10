@@ -53,8 +53,6 @@ os.makedirs(logPath, exist_ok=True)
 
 dictConfig(logging_config)
 
-
-
 # api_logger = logging.getLogger(sys._getframe(1).f_globals['__name__'])
 api_logger = logging.getLogger('api_logger')
 batch_process_logger = logging.getLogger('batch_process_logger')

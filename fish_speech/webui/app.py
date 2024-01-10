@@ -7,6 +7,8 @@ import librosa
 import requests
 
 from fish_speech.text import parse_text_to_segments
+from logger_settings import api_logger
+
 
 HEADER_MD = """
 # Fish Speech
