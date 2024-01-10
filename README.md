@@ -1,6 +1,7 @@
 
 # 项目
-git clone https://github.com/fishaudio/fish-speech.git
+原项目： https://github.com/fishaudio/fish-speech.git
+
 
 说明：
 https://speech.fish.audio/inference/#_2

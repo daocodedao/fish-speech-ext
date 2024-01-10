@@ -123,7 +123,7 @@ class VQGANModel:
         self.model.load_state_dict(state_dict, strict=True)
         self.model.eval()
         self.model.to(device)
-
+        api_logger.info(f"self.model.to.{device}")
         api_logger.info("Restored VQGAN model from checkpoint")
 
     def __del__(self):
