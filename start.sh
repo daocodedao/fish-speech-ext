@@ -32,3 +32,6 @@ echo "${RED}python $jobName ${NOCOLOR}"
 # nohup GRADIO_SERVER_NAME=127.0.0.1 GRADIO_SERVER_PORT=5001 python fish_speech/webui/app.py > /dev/null 2>&1 & 
 
 nohup python $jobName > /dev/null 2>&1 &
+
+
+tail -f logs/api.log
