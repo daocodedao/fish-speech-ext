@@ -25,4 +25,4 @@ for i in range(SLURM_NTASKS):
 
 for p in processes:
     p.wait()
-    print(p.communicate())
+    api_logger.info(p.communicate())

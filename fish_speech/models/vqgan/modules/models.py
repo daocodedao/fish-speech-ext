@@ -149,7 +149,7 @@ class SynthesizerTrn(nn.Module):
         spec_masks = torch.unsqueeze(sequence_mask(x_lengths, specs.shape[2]), 1).to(
             specs.dtype
         )
-        # print(x_lengths, x.shape)
+        # api_logger.info(x_lengths, x.shape)
         x_masks = torch.unsqueeze(sequence_mask(x_lengths, x.shape[1]), 1).to(x.dtype)
         g = self.enc_spk(specs, spec_masks)
         # x, vq_loss = self.vq(x, x_masks)

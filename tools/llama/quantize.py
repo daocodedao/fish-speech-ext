@@ -9,7 +9,7 @@ from pathlib import Path
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
+from logger_settings import api_logger
 from fish_speech.models.text2semantic.llama import ModelArgs, Transformer, find_multiple
 
 ##### Quantization Primitives ######
@@ -311,7 +311,7 @@ class WeightOnlyInt4QuantHandler:
                 out_features = mod.out_features
                 in_features = mod.in_features
                 assert out_features % 8 == 0, "require out_features % 8 == 0"
-                print(f"linear: {fqn}, in={in_features}, out={out_features}")
+                api_logger.info(f"linear: {fqn}, in={in_features}, out={out_features}")
 
                 weight = mod.weight.data
                 if not _check_linear_int4_k(
@@ -320,7 +320,7 @@ class WeightOnlyInt4QuantHandler:
                     if self.padding:
                         import torch.nn.functional as F
 
-                        print(
+                        api_logger.info(
                             f"warning: {fqn} is padded to satisfy in_features % 1024 == 0"
                         )
                         padded_in_features = find_multiple(in_features, 1024)
@@ -328,7 +328,7 @@ class WeightOnlyInt4QuantHandler:
                             weight, pad=(0, padded_in_features - in_features)
                         )
                     else:
-                        print(
+                        api_logger.info(
                             f"warning: {fqn} is skipped, int4 requires that in_features is 32, 64, or is divisible by 1024, "
                             + "and that groupsize and inner_k_tiles*16 evenly divide into it"
                         )
@@ -425,7 +425,7 @@ def quantize(
     device = "cpu"
     precision = torch.bfloat16
 
-    print("Loading model ...")
+    api_logger.info("Loading model ...")
     t0 = time.time()
 
     with torch.device("meta"):
@@ -455,7 +455,7 @@ def quantize(
     model = model.to(dtype=precision, device=device)
 
     if mode == "int8":
-        print(
+        api_logger.info(
             "Quantizing model weights for int8 weight-only symmetric per-channel quantization"
         )
         quant_handler = WeightOnlyInt8QuantHandler(model)
@@ -467,7 +467,7 @@ def quantize(
         quantize_path = dir_name / f"{base_name}.int8{suffix}"
 
     elif mode == "int4":
-        print(
+        api_logger.info(
             "Quantizing model weights for int4 weight-only affine per-channel groupwise quantization"
         )
         quant_handler = WeightOnlyInt4QuantHandler(model, groupsize)
@@ -483,10 +483,10 @@ def quantize(
             f"Invalid quantization mode {mode} needs to be one of [int8, int4, int4-gpptq]"
         )
 
-    print(f"Writing quantized weights to {quantize_path}")
+    api_logger.info(f"Writing quantized weights to {quantize_path}")
     quantize_path.unlink(missing_ok=True)  # remove existing file if one already there
     torch.save(quantized_state_dict, quantize_path)
-    print(f"Quantization complete took {time.time() - t0:.02f} seconds")
+    api_logger.info(f"Quantization complete took {time.time() - t0:.02f} seconds")
 
 
 if __name__ == "__main__":
